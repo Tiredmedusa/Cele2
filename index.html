@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Corazón 3D - Te amo infinitamente cele</title>
 <style>
   html, body {
-    margin: 0; padding: 0; overflow: hidden;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
     background: #1e1e2f;
     color: white;
     font-family: sans-serif;
   }
   #centerText {
     position: absolute;
-    top: 50%; left: 50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     font-size: 2.5rem;
     text-align: center;
@@ -30,29 +33,29 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
 <script>
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('canvas'), antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Luces
 const light = new THREE.PointLight(0xffffff, 1);
-light.position.set(10,10,10);
+light.position.set(10, 10, 10);
 scene.add(light);
 
 const ambient = new THREE.AmbientLight(0xffc0cb, 0.4);
 scene.add(ambient);
 
-// Geometría corazón 3D
+// Geometría de corazón 3D
 function createHeartGeometry() {
   const shape = new THREE.Shape();
-  shape.moveTo(0,0);
-  shape.bezierCurveTo(0,0,0,3,-2,3);
-  shape.bezierCurveTo(-4,3,-4,0,-4,0);
-  shape.bezierCurveTo(-4,-3,0,-5,0,-7);
-  shape.bezierCurveTo(0,-5,4,-3,4,0);
-  shape.bezierCurveTo(4,0,4,3,2,3);
-  shape.bezierCurveTo(0,3,0,0,0,0);
+  shape.moveTo(0, 0);
+  shape.bezierCurveTo(0, 0, 0, 3, -2, 3);
+  shape.bezierCurveTo(-4, 3, -4, 0, -4, 0);
+  shape.bezierCurveTo(-4, -3, 0, -5, 0, -7);
+  shape.bezierCurveTo(0, -5, 4, -3, 4, 0);
+  shape.bezierCurveTo(4, 0, 4, 3, 2, 3);
+  shape.bezierCurveTo(0, 3, 0, 0, 0, 0);
   const geometry = new THREE.ExtrudeGeometry(shape, {
     depth: 1.2,
     bevelEnabled: true,
@@ -64,20 +67,10 @@ function createHeartGeometry() {
   return geometry;
 }
 
-// Material principal (corazón central)
 const heartMaterial = new THREE.MeshPhongMaterial({
   color: 0xff4f79,
   shininess: 100,
   specular: 0xffffff
-});
-
-// Material para corazones pequeños con transparencia y tono rosado suave
-const smallHeartMaterial = new THREE.MeshPhongMaterial({
-  color: 0xffa3c4,
-  shininess: 80,
-  specular: 0xffffff,
-  transparent: true,
-  opacity: 0.5
 });
 
 const heart = new THREE.Mesh(createHeartGeometry(), heartMaterial);
@@ -86,37 +79,37 @@ scene.add(heart);
 
 // Corazones pequeños flotantes
 const smallHearts = [];
-for(let i=0; i<80; i++) {
-  const smallHeart = new THREE.Mesh(createHeartGeometry(), smallHeartMaterial.clone());
-  const scale = 0.05 + Math.random()*0.05;
+for (let i = 0; i < 80; i++) {
+  const smallHeart = new THREE.Mesh(createHeartGeometry(), heartMaterial.clone());
+  const scale = 0.05 + Math.random() * 0.05;
   smallHeart.scale.set(scale, scale, scale);
   const angle = Math.random() * Math.PI * 2;
   const radius = 2 + Math.random() * 3;
-  const y = (Math.random()-0.5)*3;
+  const y = (Math.random() - 0.5) * 3;
   smallHeart.position.set(
-    Math.cos(angle)*radius,
+    Math.cos(angle) * radius,
     y,
-    Math.sin(angle)*radius
+    Math.sin(angle) * radius
   );
   scene.add(smallHeart);
-  smallHearts.push({mesh: smallHeart, angle, radius, y, speed: 0.001 + Math.random()*0.002});
+  smallHearts.push({mesh: smallHeart, angle, radius, y, speed: 0.001 + Math.random() * 0.002});
 }
 
 camera.position.z = 5;
 
 // Animación
-function animate(time=0) {
+function animate(time) {
   requestAnimationFrame(animate);
 
   const scale = 1 + 0.05 * Math.sin(time * 0.005);
   heart.scale.set(scale * 0.3, scale * 0.3, scale * 0.3);
   heart.rotation.y += 0.01;
 
-  smallHearts.forEach((obj,i) => {
+  smallHearts.forEach((obj, i) => {
     obj.angle += obj.speed;
-    obj.mesh.position.x = Math.cos(obj.angle)*obj.radius;
-    obj.mesh.position.z = Math.sin(obj.angle)*obj.radius;
-    obj.mesh.position.y = obj.y + 0.1 * Math.sin(time*0.002 + i);
+    obj.mesh.position.x = Math.cos(obj.angle) * obj.radius;
+    obj.mesh.position.z = Math.sin(obj.angle) * obj.radius;
+    obj.mesh.position.y = obj.y + 0.1 * Math.sin(time * 0.002 + i);
     obj.mesh.rotation.y += 0.01;
     obj.mesh.rotation.x += 0.005;
   });
@@ -125,11 +118,12 @@ function animate(time=0) {
 }
 animate();
 
+// Resize
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-});// Material para corazones pequeños con tono rosado y transparencia
+  // Material para corazones pequeños con tono rosado y transparencia
 const smallHeartMaterial = new THREE.MeshPhongMaterial({
   color: 0xffa3c4,    // rosa suave
   shininess: 80,
