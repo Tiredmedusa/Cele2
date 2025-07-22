@@ -87,7 +87,7 @@
       directionalLight.position.set(5, 10, 7);
       scene.add(directionalLight);
 
-      // Función para crear pétalos de rosa con curva Bezier para forma orgánica
+      // Crear pétalo de rosa (forma 2D con extrusión)
       function createPetal() {
         const shape = new THREE.Shape();
         shape.moveTo(0,0);
@@ -105,7 +105,17 @@
         return geometry;
       }
 
-      // Crear pétalos múltiples para la rosa grande
+      // Crear tallo (cilindro delgado verde)
+      function createStem(height=1.5) {
+        const geometry = new THREE.CylinderGeometry(0.05, 0.05, height, 12);
+        const material = new THREE.MeshPhongMaterial({color: 0x228822, shininess: 30});
+        const stem = new THREE.Mesh(geometry, material);
+        stem.position.y = -height/2;
+        return stem;
+      }
+
+      // Crear rosa grande
+      const petalsGroup = new THREE.Group();
       const petalGeometry = createPetal();
       const petalMaterial = new THREE.MeshPhongMaterial({
         color: 0xff3366,
@@ -113,8 +123,6 @@
         specular: 0xff99aa,
         flatShading: false,
       });
-
-      const petalsGroup = new THREE.Group();
 
       const petalCount = 12;
       for(let i=0; i<petalCount; i++){
@@ -127,10 +135,14 @@
         petalsGroup.add(petalMesh);
       }
 
-      petalsGroup.position.y = -0.5;
+      // Añadir tallo a la rosa grande
+      const bigStem = createStem(2.2);
+      petalsGroup.add(bigStem);
+
+      petalsGroup.position.y = 0;
       scene.add(petalsGroup);
 
-      // Rosas pequeñas alrededor, copia simplificada
+      // Rosas pequeñas con tallos
       const smallPetalMaterial = new THREE.MeshPhongMaterial({
         color: 0xff6699,
         shininess: 60,
@@ -155,6 +167,10 @@
           petal.rotation.x = 0.3 + Math.sin(j) * 0.15;
           roseGroup.add(petal);
         }
+
+        // Añadir tallo pequeño
+        const stem = createStem(1.1);
+        roseGroup.add(stem);
 
         roseGroup.position.set(
           (Math.random()-0.5) * 8,
