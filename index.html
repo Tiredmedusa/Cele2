@@ -91,17 +91,40 @@
       pointLight2.position.set(-5,-5,5);
       scene.add(pointLight2);
 
-      // Crear forma 2D de corazón para extrusión
+      // Forma de corazón 2D icónica con curvas Bézier
       function createHeartShape() {
+        const x = 0, y = 0;
         const shape = new THREE.Shape();
-        shape.moveTo(0, 0);
-        shape.bezierCurveTo(0, 0, 1, 1.2, 0, 3);
-        shape.bezierCurveTo(0, 5, -3, 5, -3, 3.5);
-        shape.bezierCurveTo(-3, 1.5, -1, 0, 0, 0);
+
+        shape.moveTo(x + 0, y + 0);
+        shape.bezierCurveTo(x + 0, y + 0, x + 2, y + 3, x + 0, y + 5);
+        shape.bezierCurveTo(x - 2, y + 3, x - 0, y + 0, x + 0, y + 0);
         return shape;
       }
 
-      const heartShape = createHeartShape();
+      // Más precisa forma de corazón (más suave)
+      function createDetailedHeartShape() {
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.bezierCurveTo(0, 0, 2, 3, 0, 5);
+        shape.bezierCurveTo(-2, 3, 0, 0, 0, 0);
+        return shape;
+      }
+
+      // Forma mejorada (más redondeada y simétrica)
+      function createSmoothHeartShape() {
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.bezierCurveTo(0, 0, 2.5, 2.5, 0, 5);
+        shape.bezierCurveTo(-2.5, 2.5, 0, 0, 0, 0);
+        return shape;
+      }
+
+      // Vamos a usar la forma más suave
+      const heartShape = new THREE.Shape();
+      heartShape.moveTo(0, 0);
+      heartShape.bezierCurveTo(0, 0, 2.5, 2.5, 0, 5);
+      heartShape.bezierCurveTo(-2.5, 2.5, 0, 0, 0, 0);
 
       // Extrusión para volumen
       const extrudeSettings = {
@@ -122,7 +145,7 @@
       });
       const heartMesh = new THREE.Mesh(heartGeometry, heartMaterial);
 
-      // Centrar y escalar corazón grande para que quede centrado y proporcionado
+      // Centrar geometría
       heartGeometry.computeBoundingBox();
       const bbox = heartGeometry.boundingBox;
       const offsetX = - (bbox.max.x + bbox.min.x) / 2;
@@ -133,11 +156,10 @@
       heartMesh.position.y = -0.3;
       scene.add(heartMesh);
 
-      // Corazones pequeños (misma forma y extrusión, pero más chicos)
+      // Corazones pequeños con la misma forma, más pequeños y variados
       const smallHearts = [];
       for(let i=0; i<40; i++) {
         const smallGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
-        // Centrar igual que el grande
         smallGeometry.computeBoundingBox();
         const b = smallGeometry.boundingBox;
         const ox = - (b.max.x + b.min.x) / 2;
