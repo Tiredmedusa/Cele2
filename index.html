@@ -3,62 +3,39 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Te amo infinitamente Cele ❤️</title>
+<title>Corazón 3D Realista - Te amo infinitamente cele</title>
 <style>
   body, html {
-    margin: 0; padding: 0; overflow: hidden;
-    width: 100%; height: 100%;
+    margin:0; padding:0; overflow:hidden;
+    width:100%; height:100%;
     background: linear-gradient(135deg, #1e1e2f 0%, #12121b 100%);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #f8e8f8;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    user-select: none;
+    font-family: 'Dancing Script', cursive, serif;
+    color:#fddde6;
+    user-select:none;
+    display:flex;
+    justify-content:center;
+    align-items:center;
   }
-
   #container {
-    position: relative;
     width: 100vw;
     height: 100vh;
-    overflow: hidden;
+    position: relative;
   }
-
   #centerText {
     position: absolute;
-    top: 50%; left: 50%;
+    top:50%; left:50%;
     transform: translate(-50%, -50%);
-    font-size: 2.6rem;
+    font-size: 3rem;
     font-style: italic;
     font-weight: 600;
-    color: #fddde6;
     text-align: center;
-    max-width: 320px;
     text-shadow:
-      0 0 8px rgba(255,192,203,0.9),
-      0 0 16px rgba(255,105,180,0.6);
-    pointer-events: none;
-    animation: textGlow 4s ease-in-out infinite;
-    line-height: 1.3;
-    font-family: 'Dancing Script', cursive;
+      0 0 12px rgba(255,192,203,0.9),
+      0 0 20px rgba(255,105,180,0.7);
+    pointer-events:none;
+    user-select:none;
+    max-width: 320px;
   }
-
-  @keyframes textGlow {
-    0%, 100% {
-      text-shadow:
-        0 0 8px rgba(255,192,203,0.9),
-        0 0 16px rgba(255,105,180,0.6);
-      color: #fddde6;
-    }
-    50% {
-      text-shadow:
-        0 0 14px rgba(255,182,193,1),
-        0 0 26px rgba(255,105,180,0.8);
-      color: #ffc0cb;
-    }
-  }
-
-  @import url('https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap');
 </style>
 </head>
 <body>
@@ -66,110 +43,149 @@
   <div id="centerText">te amo<br>infinitamente<br>cele</div>
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    uniform float time;
+    varying vec3 vNormal;
+    varying vec3 vPos;
+    void main() {
+      vNormal = normalMatrix * normal;
+      vPos = position;
+
+      // Latido: deformación suave en Y según posición y tiempo
+      float scale = 1.0 + 0.05 * sin(time * 3.0 + position.y * 5.0);
+      vec3 pos = position * scale;
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    uniform vec3 lightPos1;
+    uniform vec3 lightColor1;
+    uniform vec3 lightPos2;
+    uniform vec3 lightColor2;
+    uniform vec3 viewPos;
+    varying vec3 vNormal;
+    varying vec3 vPos;
+
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 viewDir = normalize(viewPos - vPos);
+
+      // Luz 1
+      vec3 lightDir1 = normalize(lightPos1 - vPos);
+      float diff1 = max(dot(normal, lightDir1), 0.0);
+      vec3 reflectDir1 = reflect(-lightDir1, normal);
+      float spec1 = pow(max(dot(viewDir, reflectDir1), 0.0), 32.0);
+
+      // Luz 2
+      vec3 lightDir2 = normalize(lightPos2 - vPos);
+      float diff2 = max(dot(normal, lightDir2), 0.0);
+      vec3 reflectDir2 = reflect(-lightDir2, normal);
+      float spec2 = pow(max(dot(viewDir, reflectDir2), 0.0), 16.0);
+
+      // Color base rojo carmesí con degradados sutiles
+      vec3 baseColor = vec3(0.7, 0.1, 0.2);
+
+      // Mezcla luz difusa y especular
+      vec3 diffuse = (diff1 * lightColor1 + diff2 * lightColor2) * baseColor;
+      vec3 specular = (spec1 * lightColor1 * 1.0 + spec2 * lightColor2 * 0.6);
+
+      // Simula esmalte con brillo
+      vec3 finalColor = diffuse + specular + vec3(0.1, 0.02, 0.03);
+
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  </script>
+
   <script>
     (() => {
       const container = document.getElementById('container');
       const scene = new THREE.Scene();
 
-      const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 1000);
-      camera.position.z = 7;
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 6);
 
       const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setClearColor(0x000000, 0);
       container.appendChild(renderer.domElement);
 
-      // Luces
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
+      // Luz ambiental suave
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
       scene.add(ambientLight);
 
-      const pointLight1 = new THREE.PointLight(0xffa6c1, 1.1);
-      pointLight1.position.set(5,5,5);
+      // Luzes puntuales para reflejos
+      const pointLight1 = new THREE.PointLight(0xffa6c1, 1.2);
+      pointLight1.position.set(3, 3, 5);
       scene.add(pointLight1);
 
-      const pointLight2 = new THREE.PointLight(0xff5c8a, 0.9);
-      pointLight2.position.set(-5,-5,5);
+      const pointLight2 = new THREE.PointLight(0xff4f79, 0.8);
+      pointLight2.position.set(-3, -2, 3);
       scene.add(pointLight2);
 
-      // Forma de corazón icónica con curvas Bézier (más suave y realista)
-      function createHeartShape() {
-        const shape = new THREE.Shape();
-        shape.moveTo(0, 0);
-        shape.bezierCurveTo(0, 0, 1.5, 1.5, 0, 3);
-        shape.bezierCurveTo(-1.5, 1.5, 0, 0, 0, 0);
-        return shape;
+      // Geometría paramétrica corazón 3D (forma suave, orgánica)
+      function heartFunction(u, v, target) {
+        u = u * Math.PI;
+        v = v * 2 * Math.PI;
+
+        const r = 0.9 * (1 - Math.sin(u)) + 0.2;
+
+        const x = r * Math.cos(v) * Math.sin(u);
+        const y = r * Math.cos(u) + 0.3;
+        const z = r * Math.sin(v) * Math.sin(u);
+
+        target.set(x, y, z);
       }
 
-      // Extrusión para volumen
-      const extrudeSettings = {
-        depth: 0.3,
-        bevelEnabled: true,
-        bevelThickness: 0.1,
-        bevelSize: 0.1,
-        bevelSegments: 5
+      const geometry = new THREE.ParametricGeometry(heartFunction, 40, 40);
+      
+      // Material shader para volumen, brillo y luz dinámica
+      const uniforms = {
+        time: {value: 0},
+        lightPos1: {value: pointLight1.position},
+        lightColor1: {value: new THREE.Color(0xffa6c1)},
+        lightPos2: {value: pointLight2.position},
+        lightColor2: {value: new THREE.Color(0xff4f79)},
+        viewPos: {value: camera.position}
       };
 
-      // Corazón grande
-      const heartShape = createHeartShape();
-      const heartGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
-      const heartMaterial = new THREE.MeshPhongMaterial({
-        color: 0xff4f79,
-        shininess: 120,
-        specular: 0xffaac2,
-        flatShading: false,
+      const material = new THREE.ShaderMaterial({
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent,
+        uniforms: uniforms,
+        lights: false,
+        side: THREE.DoubleSide,
       });
-      const heartMesh = new THREE.Mesh(heartGeometry, heartMaterial);
 
-      // Centrar geometría
-      heartGeometry.computeBoundingBox();
-      const bbox = heartGeometry.boundingBox;
-      const offsetX = - (bbox.max.x + bbox.min.x) / 2;
-      const offsetY = - (bbox.max.y + bbox.min.y) / 2;
-      const offsetZ = - (bbox.max.z + bbox.min.z) / 2;
-      heartMesh.geometry.translate(offsetX, offsetY, offsetZ);
-
-      heartMesh.position.y = -0.3;
+      const heartMesh = new THREE.Mesh(geometry, material);
       scene.add(heartMesh);
 
-      // Corazones pequeños con la misma forma, más pequeños y variados
+      // Corazones pequeños (copias reducidas)
       const smallHearts = [];
-      for(let i=0; i<40; i++) {
-        const smallGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
-        smallGeometry.computeBoundingBox();
-        const b = smallGeometry.boundingBox;
-        const ox = - (b.max.x + b.min.x) / 2;
-        const oy = - (b.max.y + b.min.y) / 2;
-        const oz = - (b.max.z + b.min.z) / 2;
-        smallGeometry.translate(ox, oy, oz);
+      for(let i=0; i<35; i++) {
+        const mesh = new THREE.Mesh(geometry.clone(), material.clone());
+        mesh.scale.setScalar(0.1 + Math.random() * 0.18);
 
-        const mat = new THREE.MeshPhongMaterial({
-          color: 0xffa3b1,
-          transparent: true,
-          opacity: 0.25 + Math.random()*0.6,
-          shininess: 80,
-          specular: 0xffc0cb,
-          flatShading: false,
-        });
-
-        const mesh = new THREE.Mesh(smallGeometry, mat);
-        mesh.scale.setScalar(0.12 + Math.random()*0.25);
         mesh.position.set(
           (Math.random()-0.5)*8,
-          (Math.random()-0.2)*6,
-          (Math.random()-0.5)*8
+          (Math.random()-0.15)*5,
+          (Math.random()-0.5)*7
         );
+
         mesh.rotation.set(
           Math.random()*Math.PI,
           Math.random()*Math.PI,
           Math.random()*Math.PI
         );
 
-        scene.add(mesh);
         smallHearts.push(mesh);
+        scene.add(mesh);
       }
 
-      // Partículas sutiles fondo
-      const particleCount = 200;
+      // Partículas luminosas delicadas
+      const particleCount = 180;
       const particlesGeometry = new THREE.BufferGeometry();
       const positions = new Float32Array(particleCount*3);
       for(let i=0; i<particleCount; i++){
@@ -180,9 +196,9 @@
       particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
       const particlesMaterial = new THREE.PointsMaterial({
         color: 0xffc0cb,
-        size: 0.07,
+        size: 0.08,
         transparent: true,
-        opacity: 0.08
+        opacity: 0.09
       });
       const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
       scene.add(particleSystem);
@@ -190,28 +206,32 @@
       // Animación
       const clock = new THREE.Clock();
 
-      function animate(){
+      function animate() {
         requestAnimationFrame(animate);
         const elapsed = clock.getElapsedTime();
 
-        // Corazón grande: latido y giro lento
-        const scale = 1 + 0.05*Math.sin(elapsed*2);
-        heartMesh.scale.set(scale, scale, scale);
-        heartMesh.rotation.y += 0.005;
+        uniforms.time.value = elapsed;
 
-        // Corazones pequeños: flotan y giran suavemente
+        // Latido con deformación se aplica en vertex shader
+        const scale = 1 + 0.06 * Math.sin(elapsed * 2.5);
+        heartMesh.scale.set(scale, scale, scale);
+
+        // Rotación lenta
+        heartMesh.rotation.y += 0.004;
+
+        // Corazones pequeños flotan y giran suavemente
         smallHearts.forEach((h, i) => {
-          h.position.x += 0.001*Math.sin(elapsed + i);
-          h.position.y += 0.0007*Math.cos(elapsed*1.2 + i);
-          h.position.z += 0.001*Math.sin(elapsed*0.8 + i*1.3);
-          h.rotation.x += 0.005 + 0.003*Math.sin(elapsed + i);
-          h.rotation.y += 0.004 + 0.004*Math.cos(elapsed*1.3 + i);
+          h.position.x += 0.0013 * Math.sin(elapsed + i);
+          h.position.y += 0.0008 * Math.cos(elapsed * 1.1 + i);
+          h.position.z += 0.001 * Math.sin(elapsed * 0.9 + i * 1.5);
+          h.rotation.x += 0.004 + 0.003 * Math.sin(elapsed + i);
+          h.rotation.y += 0.004 + 0.002 * Math.cos(elapsed * 1.4 + i);
         });
 
-        // Partículas suben lentamente
+        // Partículas suben lentamente y rebotan
         const pos = particlesGeometry.attributes.position.array;
         for(let i=0; i<particleCount; i++){
-          pos[i*3+1] += 0.0002;
+          pos[i*3+1] += 0.0003;
           if(pos[i*3+1] > 5) pos[i*3+1] = -5;
         }
         particlesGeometry.attributes.position.needsUpdate = true;
@@ -224,6 +244,7 @@
         camera.aspect = window.innerWidth/window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        uniforms.viewPos.value = camera.position;
       });
     })();
   </script>
