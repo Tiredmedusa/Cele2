@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Te amo infinitamente Cele 🌹</title>
+<title>Te amo infinitamente Cele ❤️</title>
 <style>
   body, html {
     margin: 0; padding: 0; overflow: hidden;
@@ -71,8 +71,8 @@
       const container = document.getElementById('container');
       const scene = new THREE.Scene();
 
-      const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 1.5, 6);
+      const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 1000);
+      camera.position.z = 7;
 
       const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -80,112 +80,96 @@
       container.appendChild(renderer.domElement);
 
       // Luces
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
       scene.add(ambientLight);
 
-      const directionalLight = new THREE.DirectionalLight(0xffa6c1, 1);
-      directionalLight.position.set(5, 10, 7);
-      scene.add(directionalLight);
+      const pointLight1 = new THREE.PointLight(0xffa6c1, 1.1);
+      pointLight1.position.set(5,5,5);
+      scene.add(pointLight1);
 
-      // Crear pétalo de rosa (forma 2D con extrusión)
-      function createPetal() {
+      const pointLight2 = new THREE.PointLight(0xff5c8a, 0.9);
+      pointLight2.position.set(-5,-5,5);
+      scene.add(pointLight2);
+
+      // Forma de corazón icónica con curvas Bézier (más suave y realista)
+      function createHeartShape() {
         const shape = new THREE.Shape();
-        shape.moveTo(0,0);
-        shape.bezierCurveTo(0.2,0.8, 0.8,1.2, 0,1.5);
-        shape.bezierCurveTo(-0.8,1.2, -0.2,0.8, 0,0);
-        const extrudeSettings = {
-          depth: 0.15,
-          bevelEnabled: true,
-          bevelThickness: 0.05,
-          bevelSize: 0.05,
-          bevelSegments: 3,
-        };
-        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        geometry.rotateX(Math.PI / 2);
-        return geometry;
+        shape.moveTo(0, 0);
+        shape.bezierCurveTo(0, 0, 1.5, 1.5, 0, 3);
+        shape.bezierCurveTo(-1.5, 1.5, 0, 0, 0, 0);
+        return shape;
       }
 
-      // Crear tallo (cilindro delgado verde)
-      function createStem(height=1.5) {
-        const geometry = new THREE.CylinderGeometry(0.05, 0.05, height, 12);
-        const material = new THREE.MeshPhongMaterial({color: 0x228822, shininess: 30});
-        const stem = new THREE.Mesh(geometry, material);
-        stem.position.y = -height/2;
-        return stem;
-      }
+      // Extrusión para volumen
+      const extrudeSettings = {
+        depth: 0.3,
+        bevelEnabled: true,
+        bevelThickness: 0.1,
+        bevelSize: 0.1,
+        bevelSegments: 5
+      };
 
-      // Crear rosa grande
-      const petalsGroup = new THREE.Group();
-      const petalGeometry = createPetal();
-      const petalMaterial = new THREE.MeshPhongMaterial({
-        color: 0xff3366,
-        shininess: 100,
-        specular: 0xff99aa,
+      // Corazón grande
+      const heartShape = createHeartShape();
+      const heartGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+      const heartMaterial = new THREE.MeshPhongMaterial({
+        color: 0xff4f79,
+        shininess: 120,
+        specular: 0xffaac2,
         flatShading: false,
       });
+      const heartMesh = new THREE.Mesh(heartGeometry, heartMaterial);
 
-      const petalCount = 12;
-      for(let i=0; i<petalCount; i++){
-        const petalMesh = new THREE.Mesh(petalGeometry, petalMaterial);
-        petalMesh.position.y = 0;
-        petalMesh.rotation.z = (i * (Math.PI * 2 / petalCount));
-        petalMesh.position.x = Math.sin(i * (Math.PI * 2 / petalCount)) * 0.5;
-        petalMesh.position.z = Math.cos(i * (Math.PI * 2 / petalCount)) * 0.5;
-        petalMesh.rotation.x = 0.5 + Math.sin(i) * 0.2;
-        petalsGroup.add(petalMesh);
-      }
+      // Centrar geometría
+      heartGeometry.computeBoundingBox();
+      const bbox = heartGeometry.boundingBox;
+      const offsetX = - (bbox.max.x + bbox.min.x) / 2;
+      const offsetY = - (bbox.max.y + bbox.min.y) / 2;
+      const offsetZ = - (bbox.max.z + bbox.min.z) / 2;
+      heartMesh.geometry.translate(offsetX, offsetY, offsetZ);
 
-      // Añadir tallo a la rosa grande
-      const bigStem = createStem(2.2);
-      petalsGroup.add(bigStem);
+      heartMesh.position.y = -0.3;
+      scene.add(heartMesh);
 
-      petalsGroup.position.y = 0;
-      scene.add(petalsGroup);
+      // Corazones pequeños con la misma forma, más pequeños y variados
+      const smallHearts = [];
+      for(let i=0; i<40; i++) {
+        const smallGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+        smallGeometry.computeBoundingBox();
+        const b = smallGeometry.boundingBox;
+        const ox = - (b.max.x + b.min.x) / 2;
+        const oy = - (b.max.y + b.min.y) / 2;
+        const oz = - (b.max.z + b.min.z) / 2;
+        smallGeometry.translate(ox, oy, oz);
 
-      // Rosas pequeñas con tallos
-      const smallPetalMaterial = new THREE.MeshPhongMaterial({
-        color: 0xff6699,
-        shininess: 60,
-        specular: 0xff99aa,
-        transparent: true,
-        opacity: 0.5
-      });
+        const mat = new THREE.MeshPhongMaterial({
+          color: 0xffa3b1,
+          transparent: true,
+          opacity: 0.25 + Math.random()*0.6,
+          shininess: 80,
+          specular: 0xffc0cb,
+          flatShading: false,
+        });
 
-      const smallRoses = [];
-      for(let i=0; i<25; i++){
-        const roseGroup = new THREE.Group();
-
-        const smallPetalGeometry = createPetal();
-
-        const petalsPerSmallRose = 7 + Math.floor(Math.random() * 4);
-        for(let j=0; j<petalsPerSmallRose; j++){
-          const petal = new THREE.Mesh(smallPetalGeometry, smallPetalMaterial);
-          petal.position.y = 0;
-          petal.rotation.z = (j * (Math.PI * 2 / petalsPerSmallRose));
-          petal.position.x = Math.sin(j * (Math.PI * 2 / petalsPerSmallRose)) * 0.2;
-          petal.position.z = Math.cos(j * (Math.PI * 2 / petalsPerSmallRose)) * 0.2;
-          petal.rotation.x = 0.3 + Math.sin(j) * 0.15;
-          roseGroup.add(petal);
-        }
-
-        // Añadir tallo pequeño
-        const stem = createStem(1.1);
-        roseGroup.add(stem);
-
-        roseGroup.position.set(
-          (Math.random()-0.5) * 8,
-          (Math.random()-0.3) * 5,
-          (Math.random()-0.5) * 8
+        const mesh = new THREE.Mesh(smallGeometry, mat);
+        mesh.scale.setScalar(0.12 + Math.random()*0.25);
+        mesh.position.set(
+          (Math.random()-0.5)*8,
+          (Math.random()-0.2)*6,
+          (Math.random()-0.5)*8
         );
-        const scale = 0.2 + Math.random() * 0.25;
-        roseGroup.scale.set(scale, scale, scale);
+        mesh.rotation.set(
+          Math.random()*Math.PI,
+          Math.random()*Math.PI,
+          Math.random()*Math.PI
+        );
 
-        scene.add(roseGroup);
-        smallRoses.push(roseGroup);
+        scene.add(mesh);
+        smallHearts.push(mesh);
       }
 
       // Partículas sutiles fondo
-      const particleCount = 150;
+      const particleCount = 200;
       const particlesGeometry = new THREE.BufferGeometry();
       const positions = new Float32Array(particleCount*3);
       for(let i=0; i<particleCount; i++){
@@ -196,7 +180,7 @@
       particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
       const particlesMaterial = new THREE.PointsMaterial({
         color: 0xffc0cb,
-        size: 0.06,
+        size: 0.07,
         transparent: true,
         opacity: 0.08
       });
@@ -210,24 +194,24 @@
         requestAnimationFrame(animate);
         const elapsed = clock.getElapsedTime();
 
-        // Rosa grande: rotación lenta y suave latido (pétalos abriéndose)
-        petalsGroup.rotation.y += 0.004;
-        const scale = 1 + 0.03 * Math.sin(elapsed * 2);
-        petalsGroup.scale.set(scale, scale, scale);
+        // Corazón grande: latido y giro lento
+        const scale = 1 + 0.05*Math.sin(elapsed*2);
+        heartMesh.scale.set(scale, scale, scale);
+        heartMesh.rotation.y += 0.005;
 
-        // Rosas pequeñas flotando y rotando suavemente
-        smallRoses.forEach((rose, i) => {
-          rose.position.x += 0.0015 * Math.sin(elapsed + i);
-          rose.position.y += 0.001 * Math.cos(elapsed * 1.3 + i);
-          rose.position.z += 0.001 * Math.sin(elapsed * 0.8 + i * 1.5);
-          rose.rotation.x += 0.004 + 0.002 * Math.sin(elapsed + i);
-          rose.rotation.y += 0.005 + 0.002 * Math.cos(elapsed * 1.2 + i);
+        // Corazones pequeños: flotan y giran suavemente
+        smallHearts.forEach((h, i) => {
+          h.position.x += 0.001*Math.sin(elapsed + i);
+          h.position.y += 0.0007*Math.cos(elapsed*1.2 + i);
+          h.position.z += 0.001*Math.sin(elapsed*0.8 + i*1.3);
+          h.rotation.x += 0.005 + 0.003*Math.sin(elapsed + i);
+          h.rotation.y += 0.004 + 0.004*Math.cos(elapsed*1.3 + i);
         });
 
         // Partículas suben lentamente
         const pos = particlesGeometry.attributes.position.array;
         for(let i=0; i<particleCount; i++){
-          pos[i*3+1] += 0.0003;
+          pos[i*3+1] += 0.0002;
           if(pos[i*3+1] > 5) pos[i*3+1] = -5;
         }
         particlesGeometry.attributes.position.needsUpdate = true;
