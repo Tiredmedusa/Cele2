@@ -129,6 +129,13 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+});// Material para corazones pequeños con tono rosado y transparencia
+const smallHeartMaterial = new THREE.MeshPhongMaterial({
+  color: 0xffa3c4,    // rosa suave
+  shininess: 80,
+  specular: 0xffffff,
+  transparent: true,
+  opacity: 0.5
 });
 </script>
 </body>
